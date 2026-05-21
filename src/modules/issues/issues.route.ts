@@ -10,4 +10,5 @@ router.post(
   issuesController.createIssues,
 );
 router.get("/", issuesController.getIssuesAll);
+// router.get("/:id",issuesController.)
 export const issuesRoute = router;
