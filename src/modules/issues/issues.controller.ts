@@ -29,16 +29,33 @@ const getSingleIssues = async (req: Request, res: Response) => {
     data: result,
   });
 };
+
+const updateIssue = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updatebody=req.body
+
+  const result = await issuesService.updateIssuesIntoDB(
+    id as string,
+    updatebody,
+    req.user,
+  );
+
+  sendResponse(res, 200, {
+    message: "Issue updated successfully",
+    data: result,
+  });
+};
 const deleteIssues = async (req: Request, res: Response) => {
   const { id } = req.params;
   await issuesService.deleteIssueFromDB(id as string);
-  sendResponse(res,200,{
-    message:"Issue deleted successfully"
-  })
+  sendResponse(res, 200, {
+    message: "Issue deleted successfully",
+  });
 };
 export const issuesController = {
   createIssues,
   getAllIssues,
   getSingleIssues,
+  updateIssue,
   deleteIssues,
 };

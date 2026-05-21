@@ -6,6 +6,8 @@ import type {
   IReporter,
   IReporterMap,
 } from "./issues.interface";
+import type { TIssue } from "./issues.interface";
+type TRole = "maintainer" | "contributor";
 
 const createIssuesIntoDB = async (
   payload: IIssuePayload,
@@ -114,6 +116,123 @@ const getSingleIssuesFromDB = async (id: string) => {
   };
 };
 
+
+
+
+
+export const updateIssuesFromDB = async (
+  issueId: string,
+  payload: Partial<TIssue>,
+  user: {
+    id: number;
+    role: TRole;
+  }
+) => {
+  // Find existing issue
+  const existingIssue = await pool.query(
+    `SELECT * FROM issues WHERE id = $1`,
+    [issueId]
+  );
+
+  const issue = existingIssue.rows[0];
+
+  if (!issue) {
+    throw new Error("Issue not found");
+  }
+
+  /**
+   * Authorization Rules
+   *
+   * Maintainer:
+   * - Can update any issue
+   *
+   * Contributor:
+   * - Can update only own issue
+   * - Issue status must be open
+   */
+
+  if (user.role === "contributor") {
+    // Own issue check
+    if (issue.reporter_id !== user.id) {
+      throw new Error("You are not authorized");
+    }
+
+    // Status check
+    if (issue.status !== "open") {
+      throw new Error(
+        "You can only update issue when status is open"
+      );
+    }
+  }
+
+  // Prevent updating restricted fields
+  delete payload.id;
+  delete payload.created_at;
+  delete payload.updated_at;
+  delete payload.reporter_id;
+
+  // Validation
+  if (payload.title && payload.title.length > 150) {
+    throw new Error(
+      "Title cannot exceed 150 characters"
+    );
+  }
+
+  if (
+    payload.description &&
+    payload.description.length < 20
+  ) {
+    throw new Error(
+      "Description must be at least 20 characters"
+    );
+  }
+
+  if (
+    payload.type &&
+    !["bug", "feature_request"].includes(payload.type)
+  ) {
+    throw new Error("Invalid issue type");
+  }
+
+  if (
+    payload.status &&
+    !["open", "in_progress", "resolved"].includes(
+      payload.status
+    )
+  ) {
+    throw new Error("Invalid status");
+  }
+
+  // Dynamic update
+  const fields = Object.keys(payload);
+
+  if (fields.length === 0) {
+    throw new Error("No update data provided");
+  }
+
+  const setClause = fields
+    .map((field, index) => `${field} = $${index + 1}`)
+    .join(", ");
+
+  const values = [
+    ...fields.map(
+      (field) => payload[field as keyof TIssue]
+    ),
+    issueId,
+  ];
+
+  const query = `
+    UPDATE issues
+    SET ${setClause}
+    WHERE id = $${fields.length + 1}
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0];
+};
+
 const deleteIssueFromDB = async(id:string) => {
  const result = await pool.query(
     `
@@ -127,5 +246,6 @@ export const issuesService = {
   createIssuesIntoDB,
   getAllIssuesFromDB,
   getSingleIssuesFromDB,
+  updateIssuesFromDB,
   deleteIssueFromDB,
 };
