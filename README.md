@@ -3,8 +3,8 @@
 DevPulse is a streamlined, enterprise-grade collaboration backend designed for software engineering units to seamlessly document application bugs, map system requirements, track feature development, and monitor resolution loops.
 
 ## Live Deployment Links
-- **REST Engine Live URL:** [https://devpulse-api.vercel.app](https://devpulse-api.vercel.app)
-- **Source Repository:** [https://github.com/yourusername/devpulse](https://github.com/yourusername/devpulse)
+- **REST Engine Live URL:** [https://assingment-ii.vercel.app/](https://assingment-ii.vercel.app/)
+- **Source Repository:** [https://github.com/aayasIbrahim/Assignment-2](https://github.com/aayasIbrahim/Assignment-2)
 
 ## Core Capabilities
 - **Role Isolation Matrix:** Differentiated privileges for `contributors` (creation and basic ownership updates) and `maintainers` (global operations, deletions, system data metrics monitoring).
