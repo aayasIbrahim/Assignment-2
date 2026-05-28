@@ -1,3 +1,4 @@
+export type TIssueSort = "newest" | "oldest";
 export type TIssueType = "bug" | "feature_request";
 export type TIssueStatus = "open" | "in_progress" | "resolved";
 
@@ -8,9 +9,9 @@ export interface IIssuePayload {
 }
 
 export interface IIssueQueryParams {
-  sort?: "newest" | "oldest" | string;
-  type?: TIssueType | string;
-  status?: TIssueStatus | string;
+  sort?: TIssueSort;
+  type?: TIssueType;
+  status?: TIssueStatus;
 }
 
 export interface IIssueRow {
@@ -30,9 +31,6 @@ export interface IReporter {
   role: string;
 }
 
-export interface IReporterMap {
-  [key: number]: IReporter;
-}
 export type TIssue = {
   id?: number;
   title: string;
@@ -43,3 +41,6 @@ export type TIssue = {
   created_at?: Date;
   updated_at?: Date;
 };
+export interface IReporterMap {
+  [key: number]: IReporter;
+}

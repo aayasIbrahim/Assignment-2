@@ -2,17 +2,22 @@ import type { Request, Response } from "express";
 import { issuesService } from "./issues.service";
 import { sendResponse } from "../../utils/sendResponse";
 
+
 const createIssues = async (req: Request, res: Response) => {
-  const { user } = req;
-  const id = user?.id;
-  const result = await issuesService.createIssuesIntoDB(req.body, id as number);
+  const userId = req.user?.id;
+  const body =req.body
+  if (!userId) {
+    return sendResponse(res, 401, {
+     message: "Unauthorized"
+    });
+  }
+  const result = await issuesService.createIssuesIntoDB(body, userId);
   sendResponse(res, 201, {
     message: "Issue created successfully",
     data: result.rows[0],
   });
 };
 const getAllIssues = async (req: Request, res: Response) => {
-  console.log(req.query);
   const result = await issuesService.getAllIssuesFromDB(req.query);
   //   console.log(result);
 
@@ -32,15 +37,16 @@ const getSingleIssues = async (req: Request, res: Response) => {
 
 const updateIssue = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const user = req?.user;
   const updatebody = req.body;
-  if (!req.user) {
+  if (!user) {
     throw new Error("Authentication required to update issues");
   }
 
   const result = await issuesService.updateIssuesFromDB(
-    id as string,
+    id as string ,
     updatebody,
-    req.user,
+    user,
   );
 
   sendResponse(res, 200, {

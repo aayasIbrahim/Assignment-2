@@ -1,39 +1,35 @@
 import { defineConfig } from "tsup";
 
-
-
-
-
 export default defineConfig({
+  // The main entry point of the application
+  entry: ["src/server.ts"],
 
- entry: ["src/server.ts"],
+  // Output format set to modern ECMAScript Modules (ESM)
+  format: ["esm"], 
 
- format: ["esm"], // Keep this as ESM
+  // Target the latest standard of JavaScript
+  target: "esnext",
 
- target: "esnext",
+  // Output directory for the compiled code
+  outDir: "dist",
 
- outDir: "dist",
+  // Clean the output directory before each build
+  clean: true,
 
- clean: true,
+  // Bundle all code and dependencies into single/optimized files
+  bundle: true,
 
- bundle: true,
+  // Disable code splitting to keep server bundle cohesive
+  splitting: false,
 
- splitting: false,
+  // Generate source maps for easier debugging in production
+  sourcemap: true,
 
- sourcemap: true,
-
- // Add this banner to shim require() for CJS dependencies
-
- banner: {
-
-  js: `
-
-   import { createRequire } from 'module';
-
-   const require = createRequire(import.meta.url);
-
-  `,
-
- },
-
+  // Inject a shim at the top of the bundle to support commonJS require() inside ESM
+  banner: {
+    js: `
+      import { createRequire } from 'module';
+      const require = createRequire(import.meta.url);
+    `,
+  },
 });

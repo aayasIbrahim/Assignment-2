@@ -8,4 +8,3 @@ const main = () => {
   });
 };
 main();
-//server and db eksate korlam

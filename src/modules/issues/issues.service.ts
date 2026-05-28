@@ -1,4 +1,5 @@
 import { pool } from "../../db";
+import type { RUser, User } from "../../types";
 import type {
   IIssuePayload,
   IIssueQueryParams,
@@ -11,7 +12,7 @@ type TRole = "maintainer" | "contributor";
 
 const createIssuesIntoDB = async (
   payload: IIssuePayload,
-  reporterId: number,
+  reporterId: number | string,
 ) => {
   const { title, description, type } = payload;
   const result = await pool.query(
@@ -115,24 +116,19 @@ const getSingleIssuesFromDB = async (id: string) => {
     reporter: reporter,
   };
 };
-
-
-
-
-
 export const updateIssuesFromDB = async (
   issueId: string,
+  // Accepts a partial object of TIssue, allowing individual fields to be updated optionally
   payload: Partial<TIssue>,
   user: {
-    id: number;
+    id: number | string;
     role: TRole;
-  }
+  },
 ) => {
   // Find existing issue
-  const existingIssue = await pool.query(
-    `SELECT * FROM issues WHERE id = $1`,
-    [issueId]
-  );
+  const existingIssue = await pool.query(`SELECT * FROM issues WHERE id = $1`, [
+    issueId,
+  ]);
 
   const issue = existingIssue.rows[0];
 
@@ -159,9 +155,7 @@ export const updateIssuesFromDB = async (
 
     // Status check
     if (issue.status !== "open") {
-      throw new Error(
-        "You can only update issue when status is open"
-      );
+      throw new Error("You can only update issue when status is open");
     }
   }
 
@@ -173,32 +167,20 @@ export const updateIssuesFromDB = async (
 
   // Validation
   if (payload.title && payload.title.length > 150) {
-    throw new Error(
-      "Title cannot exceed 150 characters"
-    );
+    throw new Error("Title cannot exceed 150 characters");
   }
 
-  if (
-    payload.description &&
-    payload.description.length < 20
-  ) {
-    throw new Error(
-      "Description must be at least 20 characters"
-    );
+  if (payload.description && payload.description.length < 20) {
+    throw new Error("Description must be at least 20 characters");
   }
 
-  if (
-    payload.type &&
-    !["bug", "feature_request"].includes(payload.type)
-  ) {
+  if (payload.type && !["bug", "feature_request"].includes(payload.type)) {
     throw new Error("Invalid issue type");
   }
 
   if (
     payload.status &&
-    !["open", "in_progress", "resolved"].includes(
-      payload.status
-    )
+    !["open", "in_progress", "resolved"].includes(payload.status)
   ) {
     throw new Error("Invalid status");
   }
@@ -209,15 +191,14 @@ export const updateIssuesFromDB = async (
   if (fields.length === 0) {
     throw new Error("No update data provided");
   }
+  // dynamic SQL SET clause তৈরি করা (যেমন: payload-এ title ও status থাকলে তৈরি হবে: "title = $1, status = $2")
 
   const setClause = fields
     .map((field, index) => `${field} = $${index + 1}`)
     .join(", ");
 
   const values = [
-    ...fields.map(
-      (field) => payload[field as keyof TIssue]
-    ),
+    ...fields.map((field) => payload[field as keyof TIssue]),
     issueId,
   ];
 
@@ -233,8 +214,8 @@ export const updateIssuesFromDB = async (
   return result.rows[0];
 };
 
-const deleteIssueFromDB = async(id:string) => {
- const result = await pool.query(
+const deleteIssueFromDB = async (id: string) => {
+  const result = await pool.query(
     `
     DELETE FROM issues WHERE id=$1  
       `,

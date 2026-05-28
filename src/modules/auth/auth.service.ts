@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt";
 import { pool } from "../../db";
-import jwt, { type SignOptions } from "jsonwebtoken";
-
-import config from "../../config/index.js";
 import type { ILoginPayload, ISignUpPayload } from "./auth.interface";
+import { signToken } from "../../utils/jwt";
+import type { RUser, User } from "../../types";
 const signUpIntoDB = async (payload: ISignUpPayload) => {
   const { name, email, password, role } = payload;
   const hashPassword = await bcrypt.hash(password, 10);
@@ -27,9 +26,9 @@ const loginIntoDB = async (payload: ILoginPayload) => {
     throw new Error("Invalid Credentials!");
   }
   // 2. Compare the password -> Done
-  const user = userData.rows[0];
+  const user = userData.rows[0] as User;
 
-  const matchPassword = await bcrypt.compare(String(password), user.password);
+  const matchPassword = await bcrypt.compare(password, user.password);
 
   if (!matchPassword) {
     throw new Error("Invalid Credentials and password dontchange");
@@ -41,12 +40,10 @@ const loginIntoDB = async (payload: ILoginPayload) => {
     email: user.email,
     role: user.role,
   };
-  const accessToken = await jwt.sign(jwtPayload, config.secret as string, {
-    expiresIn: config.access_expires_in as NonNullable<
-      SignOptions["expiresIn"]
-    >,
-  });
-  const { password: _, ...userWithoutPassword } = user;
+  const accessToken = signToken(jwtPayload as User);
+
+  // Exclude password from user object and collect remaining fields into a new object for securit
+  const { password: _, ...userWithoutPassword } = user ;
   return { accessToken, userWithoutPassword };
 };
 export const authService = {
