@@ -1,5 +1,4 @@
 import { pool } from "../../db";
-import type { RUser, User } from "../../types";
 import type {
   IIssuePayload,
   IIssueQueryParams,
@@ -116,7 +115,7 @@ const getSingleIssuesFromDB = async (id: string) => {
     reporter: reporter,
   };
 };
-export const updateIssuesFromDB = async (
+const updateIssuesFromDB = async (
   issueId: string,
   // Accepts a partial object of TIssue, allowing individual fields to be updated optionally
   payload: Partial<TIssue>,
@@ -166,13 +165,6 @@ export const updateIssuesFromDB = async (
   delete payload.reporter_id;
 
   // Validation
-  if (payload.title && payload.title.length > 150) {
-    throw new Error("Title cannot exceed 150 characters");
-  }
-
-  if (payload.description && payload.description.length < 20) {
-    throw new Error("Description must be at least 20 characters");
-  }
 
   if (payload.type && !["bug", "feature_request"].includes(payload.type)) {
     throw new Error("Invalid issue type");
@@ -213,7 +205,6 @@ export const updateIssuesFromDB = async (
 
   return result.rows[0];
 };
-
 const deleteIssueFromDB = async (id: string) => {
   const result = await pool.query(
     `

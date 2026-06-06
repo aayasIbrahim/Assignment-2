@@ -12,7 +12,7 @@ const app: Application = express();
 // Enable CORS for the local frontend development server and allow secure credentials (e.g., cookies, authorization headers)
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://issue-tracker-psi-two.vercel.app",
     credentials: true,
   }),
 );
